@@ -1,5 +1,7 @@
 import {Component} from '@angular/core';
 import {GreetingService} from './greeting.service';
+import {Observable} from 'rxjs';
+import {tap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -7,9 +9,13 @@ import {GreetingService} from './greeting.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'http-retry-client';
+
+  greeting$: Observable<string>;
 
   constructor(private greetingService: GreetingService) {
-    this.greetingService.greet().subscribe(e => console.log('Got the result', e));
+  }
+
+  talkToTheServer(): void {
+    this.greeting$ = this.greetingService.greet();
   }
 }

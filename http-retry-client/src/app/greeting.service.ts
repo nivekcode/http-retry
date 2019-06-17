@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {EMPTY, Observable} from 'rxjs';
-import {catchError, retry} from 'rxjs/operators';
+import {catchError, retry, shareReplay} from 'rxjs/operators';
 
 @Injectable()
 export class GreetingService {
@@ -17,7 +17,8 @@ export class GreetingService {
       catchError(() => {
         // Perform some error handling
         return EMPTY;
-      })
+      }),
+      shareReplay()
     );
   }
 }
