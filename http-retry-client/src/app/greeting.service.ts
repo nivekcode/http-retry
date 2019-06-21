@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {EMPTY, Observable} from 'rxjs';
-import {catchError, retry, shareReplay} from 'rxjs/operators';
+import {catchError, shareReplay, tap} from 'rxjs/operators';
 import {delayedRetry} from './delayedRetry.operator';
 
 @Injectable()
@@ -14,9 +14,10 @@ export class GreetingService {
 
   greet(): Observable<string> {
     return this.httpClient.get<string>(`${this.GREET_ENDPOINT}/greet`).pipe(
-      delayedRetry(1000, 1),
+      delayedRetry(1000, 2),
+      tap(e => console.log('Here', e)),
       catchError(error => {
-        console.log('Error', error);
+        console.error(error);
         // Perform some error handling
         return EMPTY;
       }),
