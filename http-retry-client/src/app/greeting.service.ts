@@ -14,7 +14,7 @@ export class GreetingService {
 
   greet(): Observable<string> {
     return this.httpClient.get<string>(`${this.GREET_ENDPOINT}/greet`).pipe(
-      delayedRetry(1000, 2),
+      delayedRetry(1000, 3),
       catchError(error => {
         console.error(error);
         // Perform some error handling
