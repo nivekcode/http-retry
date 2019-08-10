@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {EMPTY, Observable} from 'rxjs';
 import {catchError, shareReplay, tap} from 'rxjs/operators';
 import {delayedRetry} from './delayedRetry.operator';
+import {retryWithBackoff} from './retryWithBackoff.operator';
 
 @Injectable()
 export class GreetingService {
@@ -14,7 +15,7 @@ export class GreetingService {
 
   greet(): Observable<string> {
     return this.httpClient.get<string>(`${this.GREET_ENDPOINT}/greet`).pipe(
-      delayedRetry(1000, 3),
+      retryWithBackoff(1000, 3),
       catchError(error => {
         console.error(error);
         // Perform some error handling
