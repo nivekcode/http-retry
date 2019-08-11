@@ -1,4 +1,4 @@
-import {of, throwError} from 'rxjs';
+import {Observable, of, throwError} from 'rxjs';
 import {tap, switchMap} from 'rxjs/operators';
 import {TestScheduler} from 'rxjs/testing';
 
@@ -10,49 +10,43 @@ const SCHEDULER_ASSERT_FN = (actual, expected) => {
 
 describe('delayedRetry', () => {
 
-  it('must return the value if source observable return a value', () => {
-    const scheduler = new TestScheduler(SCHEDULER_ASSERT_FN);
-    scheduler.run(helpers => {
-      const {cold, expectObservable, flush} = helpers;
+  let scheduler: TestScheduler;
+
+  beforeEach(() => scheduler = new TestScheduler(SCHEDULER_ASSERT_FN));
+
+  it('must return the value if the source observable emits a value', () => {
+    scheduler.run(({cold, expectObservable}) => {
       const source$ = cold('--a|');
       const expectedMarble = '--a|';
 
       const result$ = source$.pipe(delayedRetry(1000, 5));
       expectObservable(result$).toBe(expectedMarble);
-      flush();
     });
   });
 
   it('must throw an error after all the retires failed', () => {
-    const scheduler = new TestScheduler(SCHEDULER_ASSERT_FN);
-    scheduler.run(helpers => {
-      const {cold, expectObservable, flush} = helpers;
+    scheduler.run(({cold, expectObservable}) => {
       const expectedErrorMessage = 'Tried to load Resource over XHR for 5 times without success. Giving up';
       const source$ = cold('#');
       const expectedMarble = '------#';
 
       const result$ = source$.pipe(delayedRetry(1, 5));
       expectObservable(result$).toBe(expectedMarble, null, expectedErrorMessage);
-      flush();
     });
   });
 
-  it('must throw an error after all the retires failed', () => {
-    const scheduler = new TestScheduler(SCHEDULER_ASSERT_FN);
-    scheduler.run(helpers => {
-      const {expectObservable, flush} = helpers;
-
-      let counter = 0;
-      const data = 'Some data';
-      const source$ = of(counter).pipe(
-        tap(() => counter++),
-        switchMap(() => (counter < 4 ? throwError('Error') : of(data)))
+  it('must return the value even the first three attempts fail', () => {
+    scheduler.run(({expectObservable}) => {
+      let failedAttempts = 0;
+      const result = 'Real madrid is the best club ever';
+      const source$ = of(failedAttempts).pipe(
+        tap(() => failedAttempts++),
+        switchMap(() => (failedAttempts <= 3 ? throwError('Error') : of(result)))
       );
-      const expectedMarble = '---(a|)';
+      const expectedMarble = '1s 1s 1s (a|)';
 
-      const result$ = source$.pipe(delayedRetry(1, 5));
-      expectObservable(result$).toBe(expectedMarble, {a: data});
-      flush();
+      const result$ = source$.pipe(delayedRetry(1000, 5));
+      expectObservable(result$).toBe(expectedMarble, {a: result});
     });
   });
 });
